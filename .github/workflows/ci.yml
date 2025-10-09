@@ -9,13 +9,25 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Install dependencies
+        env:
+          REF: ${{ github.event.pull_request.head.sha || github.sha }}
+          REPO: ${{ github.repository }}
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # --- lightweight checkout (pas d'action additionnelle) ---
+          git init .
+          git -c http.extraheader="AUTHORIZATION: bearer $TOKEN" \
+              fetch --depth=1 https://github.com/$REPO $REF
+          git checkout FETCH_HEAD
+          # ----------------------------------------------------------
+
           python -m pip install --upgrade pip
           pip install -r requirements-dev.txt || pip install -r requirements.txt
           pip install pytest pytest-cov
-      - name: Run tests with coverage
-        run: |
-          export PYTHONPATH="${GITHUB_WORKSPACE}"
-          pytest -q --cov=app --cov-report=term-missing
 
+      - name: Run tests with coverage
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+        run: |
+          pytest -q --cov=app --cov-report=term-missing
 
