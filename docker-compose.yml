@@ -4,6 +4,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    security_opt:
+      - no-new-privileges:false
     ports:
       - "8000:8000"
     restart: always

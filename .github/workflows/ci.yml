@@ -2,12 +2,7 @@ name: CI – FastAPI
 
 on:
   pull_request:
-    branches: [ "main", "dev"]
-  push:
-    branches: [ "main", "dev" ]
-
-permissions:
-  contents: read
+    branches: [dev, main]
 
 jobs:
   test:
@@ -21,14 +16,16 @@ jobs:
         with:
           python-version: "3.10"
 
-      - name: Install dependencies (dev)
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements-dev.txt
-          pip list
+          pip install -r requirements-dev.txt || pip install -r requirements.txt
+          pip install pytest pytest-cov
 
-      - name: Run tests
+      - name: Run tests with coverage
+        env:
+          PYTHONPATH: ${{ github.workspace }}
         run: |
-          export PYTHONPATH=$(pwd)
-          pytest --maxfail=1 --disable-warnings -q
+          pytest -q --cov=app --cov-report=term-missing
+
 
